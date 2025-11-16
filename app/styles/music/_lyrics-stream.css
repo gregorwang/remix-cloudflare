@@ -1,0 +1,90 @@
+/*
+ * 歌词流动效果
+ */
+
+.lyric-stream-area {
+  position: relative;
+  overflow: hidden;
+  mask: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  -webkit-mask: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+.stream-container {
+  background: linear-gradient(135deg, rgba(250, 249, 245, 0.15) 0%, rgba(245, 244, 237, 0.05) 100%);
+}
+
+.lyrics-stream-container {
+  position: relative;
+  z-index: 1;
+}
+
+.lyric-stream-item {
+  position: absolute !important;
+  white-space: nowrap !important;
+  pointer-events: auto;
+  animation: streamFlow linear infinite;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* ✅ will-change保留: 持续动画需要GPU加速 */
+  will-change: transform, opacity;
+}
+
+.lyric-stream-item:hover {
+  opacity: 1 !important;
+  transform: scale(1.05) !important;
+  z-index: 10;
+  animation-play-state: paused;
+}
+
+@keyframes streamFlow {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(-150vw);
+    opacity: 0;
+  }
+}
+
+/* 场景样式 */
+.afternoon-scene {
+  position: relative;
+  background: linear-gradient(135deg,
+    #faf9f5 0%,
+    #f5f4ed 30%,
+    rgba(217, 119, 87, 0.3) 70%,
+    rgba(201, 100, 66, 0.4) 100%
+  );
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 var(--spacing-0-5) var(--spacing-1-5) rgba(0, 0, 0, 0.3);
+}
+
+.sun-ray {
+  transform-origin: center;
+  animation: pulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.sun-ray:nth-child(2) { animation-delay: 0.2s; }
+.sun-ray:nth-child(3) { animation-delay: 0.4s; }
+.sun-ray:nth-child(4) { animation-delay: 0.6s; }
+.sun-ray:nth-child(5) { animation-delay: 0.8s; }
+
+.cloud {
+  animation: float 6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.cloud:nth-child(2) {
+  animation-delay: 1s;
+}
+
+.hill {
+  filter: blur(1px);
+}

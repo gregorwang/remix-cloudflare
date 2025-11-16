@@ -1,0 +1,25 @@
+/*
+ * Music 页面基础配置
+ * 设计系统变量和全局样式
+ */
+
+:root {
+  /* 间距系统 - Component Level (固定值) */
+  --spacing-0-25: 0.25rem;  /* 4px */
+  --spacing-0-5: 0.5rem;     /* 8px */
+  --spacing-0-75: 0.75rem;   /* 12px */
+  --spacing-1: 1rem;         /* 16px */
+  --spacing-1-5: 1.5rem;     /* 24px */
+
+  /* 圆角系统 */
+  --radius-xs: 0.25rem;      /* 4px - Badge/Tag */
+  --radius-sm: 0.5rem;       /* 8px - 小按钮 */
+  --radius: 0.75rem;         /* 12px - 标准按钮 */
+  --radius-lg: 1rem;         /* 16px - 卡片 */
+  --radius-xl: clamp(1rem, 0.857rem + 0.714vw, 1.5rem);   /* 16-24px */
+  --radius-2xl: clamp(1rem, 0.714rem + 1.429vw, 2rem);    /* 16-32px */
+}
+
+* {
+  font-family: 'source-han-serif-sc', 'Noto Serif SC', system-ui, sans-serif;
+}

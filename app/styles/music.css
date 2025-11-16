@@ -1,0 +1,113 @@
+/*
+ * Music 页面主样式文件
+ * 导入所有模块化CSS文件
+ */
+
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+
+/* 基础配置 */
+@import "./music/_base.css";
+
+/* 视觉效果 */
+@import "./music/_starfield.css";
+@import "./music/_particles.css";
+@import "./music/_glass-effects.css";
+
+/* 组件样式 */
+@import "./music/_music-cards.css";
+@import "./music/_lyrics-stream.css";
+@import "./music/_artist-showcase.css";
+
+/* 动画 */
+@import "./music/_animations.css";
+
+/* ============================================
+   图片优化
+   ============================================ */
+
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* ============================================
+   响应式设计
+   ============================================ */
+
+@media (max-width: 768px) {
+  .stellar-text {
+    font-size: 2rem;
+  }
+
+  .music-card {
+    padding: var(--spacing-1);
+  }
+
+  .stat-card {
+    padding: var(--spacing-0-75);
+  }
+
+  .lyric-stream-item {
+    font-size: 0.875rem;
+    padding: var(--spacing-0-5) var(--spacing-1);
+  }
+
+  .stream-container {
+    height: 32rem;
+  }
+
+  .lyric-stream-area {
+    height: 28rem;
+  }
+
+  .afternoon-scene {
+    height: 16rem;
+  }
+
+  .sun {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .keyword-highlight {
+    text-align: center;
+  }
+
+  .timeline-item img {
+    width: 4rem !important;
+    height: 4rem !important;
+  }
+
+  .main-artist-image {
+    width: 8rem !important;
+    height: 8rem !important;
+  }
+
+  .artist-showcase-section .grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .artist-showcase-section h3 {
+    text-align: center;
+  }
+}
+
+/* ============================================
+   可访问性：尊重用户的动画偏好
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* 保留必要的动画（如加载指示器） */
+  .animate-spin {
+    animation-duration: 1s !important;
+  }
+}

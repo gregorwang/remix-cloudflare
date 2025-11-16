@@ -1,0 +1,86 @@
+/*
+ * 通用动画效果
+ * 注意:基础动画已在tailwind.config.ts中定义
+ * 此文件仅包含特殊的CSS动画效果
+ */
+
+/* 闪烁效果 - 用于加载状态 */
+.animate-shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+/* 呼吸效果 - 柔和的脉动 */
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* 抖动效果 - 用于提示或错误 */
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* 弹跳进入 */
+.animate-bounce-in {
+  animation: bounceIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* GPU加速优化 - 最佳实践 */
+.gpu-accelerated {
+  /* 使用 translateZ(0) 触发GPU加速，避免长期使用 will-change */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 仅在确实需要优化的动画元素上使用 */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-auto {
+  /* 动画结束后重置 */
+  will-change: auto;
+}

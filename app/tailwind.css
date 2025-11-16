@@ -1,0 +1,236 @@
+/*
+ * Tailwind CSS v4 主配置文件
+ * 使用 @layer 系统组织 CSS
+ */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./styles/theme.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   @layer base - 全局基础样式
+   ============================================ */
+
+@layer base {
+  /* HTML & Body 基础样式 */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    background: var(--color-primary-50);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-style: normal;
+
+    @media (prefers-color-scheme: dark) {
+      color-scheme: dark;
+      background: var(--color-primary-950);
+    }
+  }
+
+  .dark html,
+  .dark body {
+    background: var(--color-primary-950);
+  }
+
+  /* 全局元素样式 */
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  /* 文本选择样式 */
+  ::selection {
+    background: color-mix(in oklch, var(--color-accent) 30%, transparent);
+    color: var(--color-primary-950);
+  }
+
+  ::-moz-selection {
+    background: color-mix(in oklch, var(--color-accent) 30%, transparent);
+    color: var(--color-primary-950);
+  }
+}
+
+/* ============================================
+   @layer components - 可复用组件样式
+   ============================================ */
+
+@layer components {
+  /* 滚动条组件 - 基础样式 */
+  .scrollbar-base {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-color, rgba(139, 92, 246, 0.5)) var(--scrollbar-track-color, transparent);
+  }
+
+  .scrollbar-base::-webkit-scrollbar {
+    width: var(--scrollbar-width, 8px);
+  }
+
+  .scrollbar-base::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-bg, rgba(255, 255, 255, 0.1));
+    border-radius: var(--scrollbar-border-radius, 10px);
+  }
+
+  .scrollbar-base::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg, rgba(139, 92, 246, 0.5));
+    border-radius: var(--scrollbar-border-radius, 10px);
+  }
+
+  .scrollbar-base::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover-bg, rgba(139, 92, 246, 0.7));
+  }
+
+  /* 自定义滚动条 - terms 页面 */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.5) transparent;
+    --scrollbar-width: 8px;
+    --scrollbar-thumb-color: rgba(139, 92, 246, 0.5);
+    --scrollbar-track-color: transparent;
+    --scrollbar-track-bg: rgba(255, 255, 255, 0.1);
+    --scrollbar-thumb-bg: linear-gradient(to bottom, #8b5cf6, #ec4899);
+    --scrollbar-thumb-hover-bg: linear-gradient(to bottom, #7c3aed, #db2777);
+    --scrollbar-border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: var(--scrollbar-width, 8px);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-bg, rgba(255, 255, 255, 0.1));
+    border-radius: var(--scrollbar-border-radius, 10px);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg, rgba(139, 92, 246, 0.5));
+    border-radius: var(--scrollbar-border-radius, 10px);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover-bg, rgba(139, 92, 246, 0.7));
+  }
+
+  /* 聊天界面专用滚动条 */
+  .chat-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--color-accent) 30%, transparent) transparent;
+    --scrollbar-width: 6px;
+    --scrollbar-thumb-color: color-mix(in oklch, var(--color-accent) 30%, transparent);
+    --scrollbar-track-color: transparent;
+    --scrollbar-track-bg: transparent;
+    --scrollbar-thumb-bg: color-mix(in oklch, var(--color-accent) 30%, transparent);
+    --scrollbar-thumb-hover-bg: color-mix(in oklch, var(--color-accent-hover) 50%, transparent);
+    --scrollbar-border-radius: 3px;
+  }
+
+  .chat-scrollbar::-webkit-scrollbar {
+    width: var(--scrollbar-width, 6px);
+  }
+
+  .chat-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-bg, transparent);
+    border-radius: var(--scrollbar-border-radius, 3px);
+  }
+
+  .chat-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg, rgba(217, 119, 87, 0.3));
+    border-radius: var(--scrollbar-border-radius, 3px);
+  }
+
+  .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover-bg, rgba(201, 100, 66, 0.5));
+  }
+
+  /* 打字指示器动画 */
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+  }
+
+  .typing-indicator span {
+    height: 6px;
+    width: 6px;
+    margin: 0 1px;
+    background-color: var(--color-accent);
+    border-radius: 50%;
+    display: inline-block;
+    opacity: 0.4;
+  }
+
+  .typing-indicator span:nth-child(1) {
+    animation: pulse-typing 1s infinite 0.1s;
+  }
+
+  .typing-indicator span:nth-child(2) {
+    animation: pulse-typing 1s infinite 0.3s;
+  }
+
+  .typing-indicator span:nth-child(3) {
+    animation: pulse-typing 1s infinite 0.5s;
+  }
+
+  @keyframes pulse-typing {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.4;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+  }
+}
+
+/* ============================================
+   @layer utilities - 自定义工具类
+   ============================================ */
+
+@layer utilities {
+  /* 滚动条隐藏工具类 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* GPU 加速工具类 */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+}
+
+/* ============================================
+   可访问性：尊重用户的动画偏好设置
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* 保留必要的动画（如加载指示器） */
+  .animate-spin {
+    animation-duration: 1s !important;
+  }
+}
+
+/* Music 页面专用样式已移至 app/styles/music.css */

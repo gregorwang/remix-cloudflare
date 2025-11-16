@@ -1,0 +1,68 @@
+/*
+ * 动画效果 - 使用 Expo Out 缓动
+ */
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-float {
+  animation: float 3s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.stellar-pulse {
+  animation: pulse-slow 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* 性能优化 - 谨慎使用 will-change */
+.transform-gpu {
+  /* GPU加速 - 使用translateZ替代will-change */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ⚠️ 优化建议: 以下元素的will-change应该通过JS动态添加
+ * 只在交互开始时添加,交互结束时移除
+ * 这样可以避免长期占用GPU内存
+ */
+.main-artist-image,
+.timeline-item,
+.floating,
+.sun,
+.cloud,
+.hill,
+.music-notes {
+  /* will-change removed: 使用backface-visibility和transform替代 */
+  backface-visibility: hidden;
+  /* 如需优化性能,建议使用JS: element.style.willChange = 'transform' */
+}

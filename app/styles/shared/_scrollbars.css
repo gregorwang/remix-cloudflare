@@ -1,0 +1,41 @@
+/*
+ * 统一滚动条样式
+ * 可在全局或特定组件中使用
+ */
+
+/* 全局默认滚动条 - 在tailwind.css中已定义 */
+/* 此文件提供可选的滚动条变体 */
+
+/* 极简滚动条 */
+.scrollbar-minimal {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.scrollbar-minimal::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-minimal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-minimal::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* 隐藏滚动条但保持可滚动 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
