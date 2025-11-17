@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import path from "path";
+import fs from "fs";
 import { Kysely, SqliteDialect } from "kysely";
 
 // 数据库文件路径
@@ -9,6 +10,13 @@ const dbPath =
     : path.join(process.cwd(), "app.db");
 
 console.log(`[Database] Using database at: ${dbPath}`);
+
+// ✅ 确保数据库目录存在
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+  console.log(`[Database] Creating directory: ${dbDir}`);
+  fs.mkdirSync(dbDir, { recursive: true });
+}
 
 // 原生 better-sqlite3 连接
 const sqliteDb = new Database(dbPath);

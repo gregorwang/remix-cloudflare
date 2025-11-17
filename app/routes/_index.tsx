@@ -47,7 +47,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             id: "705331",
             title: "コネクト",
             artist: "ClariS",
-            url: "https://nf-sycdn.kuwo.cn/992d892269467601977297d9043d8579/69187522/resource/n3/41/39/4244581413.mp3",
+            url: "https://whylookthis.wangjiajun.asia/4244581413.mp3",
             lrcFile: "コネクト.lrc"
         },
         {

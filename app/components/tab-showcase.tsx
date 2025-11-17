@@ -70,10 +70,18 @@ export default function TabShowcase({ songs }: TabShowcaseProps) {
   // Parse lyrics from current song (memoized)
   const lyrics = useMemo(() => parseLRC(currentSong.lyrics), [currentSong.lyrics])
 
-  // Check if text is English (not Chinese)
-  const isEnglish = (text: string): boolean => {
-    // Check if contains Chinese characters
-    return !/[\u4e00-\u9fa5]/.test(text)
+  // 判断是否是原文歌词（非中文翻译）
+  const isOriginalLyric = (text: string): boolean => {
+    // 如果包含日语假名（平假名或片假名），肯定是日语原文
+    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) {
+      return true
+    }
+    // 如果包含英文字母，肯定是英文原文
+    if (/[a-zA-Z]/.test(text)) {
+      return true
+    }
+    // 如果只包含中文汉字和标点，那是中文翻译
+    return false
   }
 
   // Update current lyric index based on current time
@@ -81,11 +89,11 @@ export default function TabShowcase({ songs }: TabShowcaseProps) {
     if (lyrics.length === 0) return
 
     let index = 0
-    // Find the latest lyric that matches current time (all languages)
+    // Find the latest lyric that matches current time - 只更新原文歌词的高亮
     for (let i = 0; i < lyrics.length; i++) {
-      if (currentTime >= lyrics[i].time) {
+      if (currentTime >= lyrics[i].time && isOriginalLyric(lyrics[i].text)) {
         index = i
-      } else {
+      } else if (currentTime < lyrics[i].time) {
         break
       }
     }
@@ -322,14 +330,18 @@ export default function TabShowcase({ songs }: TabShowcaseProps) {
                 >
                   <div ref={lyricsListRef} className="w-full px-6 py-8">
                     {lyrics.map((lyric, index) => {
-                      const isCurrentLyric = index === currentLyricIndex
+                      // 只有原文歌词才会高亮
+                      const shouldHighlight = index === currentLyricIndex && isOriginalLyric(lyric.text)
+                      const isChinese = !isOriginalLyric(lyric.text)
 
                       return (
                         <p
                           key={index}
                           className={`mb-3 text-sm leading-relaxed transition-all duration-300 ${
-                            isCurrentLyric
+                            shouldHighlight
                           ? 'text-accent text-base font-semibold scale-105'
+                          : isChinese
+                          ? 'text-primary-950/50 text-xs'
                           : 'text-primary-950/70'
                           }`}
                         >
