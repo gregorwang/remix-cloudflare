@@ -2,7 +2,13 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { getSessionCached } from "~/lib/auth.server";
-import { authClient } from "~/lib/auth-client";
+let authClientPromise: Promise<typeof import("~/lib/auth-client.client")> | null = null;
+
+const getAuthClient = async () => {
+  authClientPromise ??= import("~/lib/auth-client.client");
+  const { authClient } = await authClientPromise;
+  return authClient;
+};
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   // 检查用户是否已登录
@@ -33,6 +39,7 @@ export default function AuthPage() {
 
   const handleGoogleSignIn = async () => {
     try {
+      const authClient = await getAuthClient();
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/",
@@ -49,6 +56,7 @@ export default function AuthPage() {
     setIsSubmitting(true);
 
     try {
+      const authClient = await getAuthClient();
       const result = await authClient.signIn.magicLink({
         email,
         callbackURL: "/",
