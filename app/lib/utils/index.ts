@@ -35,17 +35,3 @@ export {
   sortGamesByPlayTime
 } from './gameUtils';
 
-// 加密相关工具
-export {
-  generateImageToken,
-  verifyImageToken,
-  generateImageUrl,
-  validateImageName,
-  validateExpirationTime,
-  formatRemainingTime,
-  generateSecureRandomString,
-  calculateHash
-} from './cryptoUtils';
-
-// 类型导出
-export type { TokenResult, TokenVerificationResult } from './cryptoUtils'; 
