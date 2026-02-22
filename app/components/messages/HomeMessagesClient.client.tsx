@@ -7,7 +7,7 @@ const EMOJIS_PER_PAGE = 32;
 const MESSAGES_PER_PAGE = 10; // 每页显示的留言数，与后端保持一致
 
 interface Message {
-    id: string;
+    id: number;
     user_id: string;
     username: string;
     content: string;

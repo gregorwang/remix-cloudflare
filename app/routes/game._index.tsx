@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/node";
+﻿import type { MetaFunction } from "@remix-run/cloudflare";
 import { Link } from "@remix-run/react";
 import { PlayStationIcon, SwitchIcon, PCIcon } from "~/components/GamePlatformIcons";
 import { pageMeta } from "~/utils/seo";
@@ -138,4 +138,5 @@ export default function GameIndex() {
     </div>
   );
 }
+
 

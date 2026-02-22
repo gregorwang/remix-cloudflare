@@ -20,7 +20,7 @@ interface CacheStats {
 
 class ServerCache {
   private static instance: ServerCache;
-  private cache: Map<string, CacheItem<any>> = new Map();
+  private cache: Map<string, CacheItem<unknown>> = new Map();
   private stats = {
     hits: 0,
     misses: 0,
@@ -41,7 +41,7 @@ class ServerCache {
     setInterval(() => this.cleanup(), 2 * 60 * 1000); // 每2分钟清理一次
     
     // 内存压力监控
-    if (typeof process !== 'undefined' && process.memoryUsage) {
+    if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
       setInterval(() => this.memoryPressureCheck(), 10 * 60 * 1000); // 每10分钟检查一次
     }
   }
@@ -97,7 +97,7 @@ class ServerCache {
     item.hitCount++;
     this.stats.hits++;
     
-    return item.data;
+    return item.data as T;
   }
 
   /**
@@ -209,7 +209,7 @@ class ServerCache {
    * 使用自适应阈值和渐进式LRU驱逐策略
    */
   private memoryPressureCheck(): void {
-    if (typeof process === 'undefined' || !process.memoryUsage) return;
+    if (typeof process === 'undefined' || typeof process.memoryUsage !== 'function') return;
     
     const usage = process.memoryUsage();
     const heapUsedMB = usage.heapUsed / 1024 / 1024;
@@ -282,7 +282,7 @@ class ServerCache {
   /**
    * 预热缓存
    */
-  async warmup(keys: Array<{ key: string; fetcher: () => Promise<any>; ttl?: number }>): Promise<void> {
+  async warmup(keys: Array<{ key: string; fetcher: () => Promise<unknown>; ttl?: number }>): Promise<void> {
     console.log(`[ServerCache] Starting warmup for ${keys.length} items...`);
     
     const promises = keys.map(async ({ key, fetcher, ttl }) => {

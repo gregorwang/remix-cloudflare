@@ -290,7 +290,8 @@ export default function TabShowcase({ songs }: TabShowcaseProps) {
                     src="https://cdn.sanity.io/images/2hv88549/production/6a23c94721e22f5c31f2ef72ccd7cdf9fecd9e12-1995x1330.jpg?auto=format&w=2000&q=80"
                     alt="Stone texture background"
                     className="absolute inset-0 w-full h-full object-cover"
-                    loading="eager"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-primary-50/5 pointer-events-none" />
                 </div>
@@ -456,6 +457,7 @@ export default function TabShowcase({ songs }: TabShowcaseProps) {
                   onLoadedMetadata={handleLoadedMetadata}
                   onEnded={handleSongEnded}
                   aria-label="音乐播放器"
+                  preload="metadata"
                 >
                   <track kind="captions" />
                 </audio>

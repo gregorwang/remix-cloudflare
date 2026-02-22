@@ -1,6 +1,6 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import crypto from 'crypto';
+import type { ActionFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
+import { generateImageToken } from "~/utils/imageToken.server";
 
 // 请求体类型
 interface ImageTokenRequest {
@@ -70,40 +70,19 @@ export async function action({ request }: ActionFunctionArgs) {
     // 验证过期时间范围（5-60分钟）
     const validExpiresInMinutes = Math.max(5, Math.min(60, parseInt(String(expiresInMinutes))));
 
-    // 配置 - 安全性: 不提供密钥回退值
-    const secret = process.env.AUTH_KEY_SECRET;
-    if (!secret) {
-      throw new Error('AUTH_KEY_SECRET environment variable is required');
-    }
-    const baseUrl = process.env.IMAGE_BASE_URL || 'https://oss.wangjiajun.asia'; // 图片基础URL
-    
-    // 计算过期时间戳（秒）
-    const expires = Math.floor(Date.now() / 1000) + (validExpiresInMinutes * 60);
-    
-    // 生成签名：HMAC_SHA256(key:expires, secret)，签名用 hex
-    const key = imageName; // 图片名作为key
-    const message = `${key}:${expires}`;
-    const signature = crypto.createHmac('sha256', secret)
-      .update(message)
-      .digest('hex');
-    
-    // 生成Token：base64url(expires:signature)
-    const tokenData = `${expires}:${signature}`;
-    const token = Buffer.from(tokenData).toString('base64url');
-    
-    // 生成完整的图片URL
-    const imageUrl = `${baseUrl}/${imageName}?token=${token}`;
+    const result = generateImageToken(imageName, validExpiresInMinutes);
+    const expiresAt = new Date(result.expires * 1000).toISOString();
     
     // Token生成成功响应 - 可以短时间缓存
     return json<ImageTokenResponse>(
       {
         success: true,
         data: {
-          imageName,
-          imageUrl,
-          token,
-          expires,
-          expiresAt: new Date(expires * 1000).toISOString(),
+          imageName: result.imageName,
+          imageUrl: result.imageUrl,
+          token: result.token,
+          expires: result.expires,
+          expiresAt,
           expiresInMinutes: validExpiresInMinutes
         }
       },

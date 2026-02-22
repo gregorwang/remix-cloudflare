@@ -39,6 +39,8 @@ const cards: Card[] = [
         src="https://whylookthis.wangjiajun.asia/baiquan.jpg" 
         alt="年度最佳番剧"
         className="max-w-full h-auto rounded-lg"
+        loading="lazy"
+        decoding="async"
       />
     ),
   },

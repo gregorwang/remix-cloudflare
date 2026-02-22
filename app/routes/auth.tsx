@@ -1,15 +1,12 @@
-import { useState, useEffect } from "react";
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { auth } from "~/lib/auth.server";
+﻿import { useState, useEffect } from "react";
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
+import { getSessionCached } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   // 检查用户是否已登录
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+  const session = await getSessionCached(request);
 
   // 如果已登录，重定向到首页
   if (session?.user) {
@@ -57,15 +54,13 @@ export default function AuthPage() {
         callbackURL: "/",
       });
 
-      if (result.error) {
+      const resultError = (result as { error?: unknown }).error;
+      if (resultError) {
         // 调试：打印完整的错误对象
-        console.log("[Auth] Full error object:", result.error);
+        console.log("[Auth] Full error object:", resultError);
 
         // Better Auth 可能会把错误信息放在不同的字段中
-        const errorMsg = result.error.message ||
-                        result.error.error?.message ||
-                        (typeof result.error === 'string' ? result.error : null) ||
-                        "发送邮件失败，请稍后重试";
+        const errorMsg = extractErrorMessage(resultError);
 
         console.log("[Auth] Extracted error message:", errorMsg);
 
@@ -86,9 +81,10 @@ export default function AuthPage() {
       } else {
         setEmailSent(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error("Magic link error:", err);
-      setError(err.message || "发送邮件失败，请稍后重试");
+      setError(errorMessage || "发送邮件失败，请稍后重试");
     } finally {
       setIsSubmitting(false);
     }
@@ -123,10 +119,11 @@ export default function AuthPage() {
             {/* Magic Link Form */}
             <form onSubmit={handleMagicLinkSubmit} className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                   邮箱地址
                 </label>
                 <input
+                  id="email"
                   name="email"
                   type="email"
                   value={email}
@@ -313,3 +310,13 @@ export default function AuthPage() {
     </div>
   );
 }
+  const extractErrorMessage = (errorValue: unknown): string => {
+    if (!errorValue) return "发送邮件失败，请稍后重试";
+    if (typeof errorValue === "string") return errorValue;
+    if (typeof errorValue === "object") {
+      const maybeError = errorValue as { message?: string; error?: { message?: string } };
+      return maybeError.message || maybeError.error?.message || "发送邮件失败，请稍后重试";
+    }
+    return "发送邮件失败，请稍后重试";
+  };
+

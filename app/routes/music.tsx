@@ -1,6 +1,6 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
+﻿import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
 import type { ClientLoaderFunctionArgs } from "@remix-run/react";
-import { json } from "@remix-run/node";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import musicStyles from "~/styles/music.css?url";
 import { generateImageTokens } from "~/utils/imageToken.server";
@@ -131,7 +131,7 @@ export async function clientLoader({
   serverLoader 
 }: ClientLoaderFunctionArgs) {
   const CACHE_KEY = 'music-page-data';
-  const CACHE_VERSION = 'v1';
+  const CACHE_VERSION = 'v2';
   const CACHE_DURATION = 5 * 60 * 1000; // 5分钟
 
   try {

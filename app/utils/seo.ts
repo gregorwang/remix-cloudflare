@@ -1,4 +1,4 @@
-import type { MetaDescriptor } from "@remix-run/node";
+﻿import type { MetaDescriptor } from "@remix-run/cloudflare";
 
 export interface SEOConfig {
   title: string;
@@ -157,3 +157,4 @@ export const pageMeta = {
       keywords: ["留言板", "留言", "反馈"],
     }),
 };
+

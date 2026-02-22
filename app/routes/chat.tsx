@@ -1,5 +1,5 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { useState, useEffect, useRef } from "react";
 import { pageMeta } from "~/utils/seo";

@@ -2,6 +2,9 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Link } from "@remix-run/react"
 
+const VIDEO_POSTER =
+  "https://cdn.sanity.io/images/2hv88549/production/1ffde036387b7242c29496bd7b1009f2218bce43-3266x2324.jpg?auto=format&w=1200&q=60"
+
 interface Position {
   x: number
   y: number
@@ -118,10 +121,10 @@ export default function VideoShowcase() {
               <div className="absolute -inset-8 -right-16 lg:-inset-12 lg:-right-24 xl:-inset-16 xl:-right-32 bg-gradient-to-b from-primary-100 to-primary-50 rounded-l-3xl overflow-hidden">
                 <div className="absolute inset-0 w-full h-full overflow-hidden">
                   <img
-                    src="https://cdn.sanity.io/images/2hv88549/production/1ffde036387b7242c29496bd7b1009f2218bce43-3266x2324.jpg?auto=format&w=1200&q=60"
+                    src={VIDEO_POSTER}
                     alt="Oil painting background"
                     className="absolute inset-0 w-full h-full object-cover"
-                    loading="eager"
+                    loading="lazy"
                     decoding="async"
                     width="1200"
                     height="855"
@@ -159,11 +162,19 @@ export default function VideoShowcase() {
                   <video
                     src="https://whylookthis.wangjiajun.asia/yotei.mp4"
                     controls
-                    preload="metadata"
+                    preload="none"
+                    poster={VIDEO_POSTER}
                     className="w-full h-full object-contain"
                     playsInline
                     title="羊蹄山之魂 - 对马岛之魂游戏视频"
                   >
+                    <track
+                      kind="captions"
+                      src="/captions/yotei.vtt"
+                      srcLang="en"
+                      label="English captions"
+                      default
+                    />
                     您的浏览器不支持视频播放。
                   </video>
                 </div>

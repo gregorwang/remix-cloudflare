@@ -1,4 +1,4 @@
-import {
+﻿import {
   Links,
   LiveReload,
   Meta,
@@ -9,11 +9,11 @@ import {
   json,
   useLocation,
 } from "@remix-run/react";
-import type { LinksFunction, LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
 
 import tailwindStyles from "./tailwind.css?url";
 import { getTheme, setTheme, type Theme } from "~/utils/theme.server";
-import { auth } from "~/lib/auth.server";
+import { getSessionCached } from "~/lib/auth.server";
 
 // Root loader - Better Auth integration
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -21,9 +21,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const theme = await getTheme(request);
 
   // 获取 Better Auth session
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+  const session = await getSessionCached(request);
 
   return json({
     theme,
@@ -39,8 +37,6 @@ export const links: LinksFunction = () => [
   { rel: "dns-prefetch", href: "https://oss.wangjiajun.asia" },
   { rel: "preconnect", href: "https://whylookthis.wangjiajun.asia" },
   { rel: "dns-prefetch", href: "https://whylookthis.wangjiajun.asia" },
-  // 预加载常用路由
-  { rel: "prefetch", href: "/chat" },
 ];
 
 // Root loader - Better Auth integration
@@ -118,3 +114,4 @@ function App() {
 }
 
 export default App;
+

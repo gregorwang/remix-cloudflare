@@ -1,7 +1,7 @@
-// Better Auth API 路由
+﻿// Better Auth API 路由
 // 处理所有 /api/auth/* 的请求，包括OAuth回调
-import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { auth } from "~/lib/auth.server";
 import { MagicLinkRateLimitService } from "~/lib/rate-limit.server";
 import { getClientIP } from "~/utils/request.server";
@@ -25,7 +25,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     try {
       // IP 限流检查（5次/小时）- 第一道防线
-      const ipCheck = MagicLinkRateLimitService.checkIPRateLimit(clientIP);
+      const ipCheck = await MagicLinkRateLimitService.checkIPRateLimit(clientIP);
       
       if (!ipCheck.allowed) {
         console.warn("[MagicLink] IP rate limit exceeded:", {
@@ -56,3 +56,4 @@ export async function action({ request }: ActionFunctionArgs) {
   // 通过 IP 限流后，继续执行 Better Auth 的正常流程
   return auth.handler(request);
 }
+

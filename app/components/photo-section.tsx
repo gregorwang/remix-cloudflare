@@ -26,6 +26,8 @@ export default function CursorTeamSection() {
               src="https://whylookthis.wangjiajun.asia/future.webp"
               alt="青岛海岸线的天空与城市剪影"
               className="w-full h-auto rounded-lg shadow-lg object-cover aspect-square md:aspect-auto"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

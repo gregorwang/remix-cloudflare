@@ -1,162 +1,150 @@
-import Database from "better-sqlite3";
-import path from "path";
-import fs from "fs";
-import { Kysely, SqliteDialect } from "kysely";
+﻿import { Kysely } from "kysely";
+import { D1Dialect } from "kysely-d1";
+import { getDatabaseBinding } from "~/utils/cloudflare-env.server";
 
-// 数据库文件路径
-const dbPath =
-  process.env.NODE_ENV === "production"
-    ? path.join(process.cwd(), "data", "app.db")
-    : path.join(process.cwd(), "app.db");
+type StatementParam = string | number | null | Uint8Array | ArrayBuffer;
 
-console.log(`[Database] Using database at: ${dbPath}`);
+function normalizeParam(value: unknown): StatementParam {
+  if (value === null || typeof value === "string" || typeof value === "number") {
+    return value;
+  }
 
-// ✅ 确保数据库目录存在
-const dbDir = path.dirname(dbPath);
-if (!fs.existsSync(dbDir)) {
-  console.log(`[Database] Creating directory: ${dbDir}`);
-  fs.mkdirSync(dbDir, { recursive: true });
+  if (typeof value === "boolean") {
+    return value ? 1 : 0;
+  }
+
+  if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+    return value;
+  }
+
+  if (value === undefined) {
+    return null;
+  }
+
+  return String(value);
 }
 
-// 原生 better-sqlite3 连接
-const sqliteDb = new Database(dbPath);
+class D1PreparedStatementWrapper<T = Record<string, unknown>> {
+  constructor(private readonly query: string) {}
 
-// 启用WAL模式（提升并发性能）
-sqliteDb.pragma("journal_mode = WAL");
-sqliteDb.pragma("foreign_keys = ON");
+  private bind(params: unknown[]) {
+    return getDatabaseBinding().prepare(this.query).bind(...params.map(normalizeParam));
+  }
 
-// Kysely 实例（Better Auth 需要）
-export const authDb = new Kysely<any>({
-  dialect: new SqliteDialect({
-    database: sqliteDb,
-  }),
-});
+  async all(...params: unknown[]): Promise<T[]> {
+    const result = await this.bind(params).all<T>();
+    return (result.results ?? []) as T[];
+  }
 
-// 导出原生数据库用于现有查询逻辑
-export const db = sqliteDb;
+  async get(...params: unknown[]): Promise<T | undefined> {
+    const result = await this.bind(params).first<T>();
+    return result ?? undefined;
+  }
 
-// 初始化数据库表
-export function initializeDatabase() {
-  console.log("[Database] Initializing tables...");
+  async run(...params: unknown[]): Promise<{ changes: number; lastInsertRowid: number }> {
+    const result = await this.bind(params).run();
+    const meta = result.meta ?? {};
 
-  sqliteDb.exec(`
-    -- 用户表
-    CREATE TABLE IF NOT EXISTS user (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      emailVerified INTEGER DEFAULT 0,
-      name TEXT,
-      image TEXT,
-      createdAt INTEGER NOT NULL,
-      updatedAt INTEGER NOT NULL
-    );
-
-    -- 会话表（Better Auth需要）
-    CREATE TABLE IF NOT EXISTS session (
-      id TEXT PRIMARY KEY,
-      expiresAt INTEGER NOT NULL,
-      token TEXT UNIQUE NOT NULL,
-      ipAddress TEXT,
-      userAgent TEXT,
-      userId TEXT NOT NULL,
-      createdAt INTEGER NOT NULL,
-      updatedAt INTEGER NOT NULL,
-      FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
-    );
-
-    -- 账户表（OAuth需要）
-    CREATE TABLE IF NOT EXISTS account (
-      id TEXT PRIMARY KEY,
-      accountId TEXT NOT NULL,
-      providerId TEXT NOT NULL,
-      userId TEXT NOT NULL,
-      accessToken TEXT,
-      refreshToken TEXT,
-      idToken TEXT,
-      expiresAt INTEGER,
-      accessTokenExpiresAt INTEGER,
-      refreshTokenExpiresAt INTEGER,
-      scope TEXT,
-      password TEXT,
-      createdAt INTEGER NOT NULL,
-      updatedAt INTEGER NOT NULL,
-      FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
-    );
-
-    -- 验证表（Magic Link需要）
-    CREATE TABLE IF NOT EXISTS verification (
-      id TEXT PRIMARY KEY,
-      identifier TEXT NOT NULL,
-      value TEXT NOT NULL,
-      expiresAt INTEGER NOT NULL,
-      createdAt INTEGER NOT NULL,
-      updatedAt INTEGER NOT NULL
-    );
-
-    -- 留言表
-    CREATE TABLE IF NOT EXISTS messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT NOT NULL,
-      username TEXT NOT NULL,
-      content TEXT NOT NULL,
-      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
-    );
-
-    -- 限流记录表（替代Redis）
-    CREATE TABLE IF NOT EXISTS rate_limits (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      key TEXT NOT NULL UNIQUE,
-      count INTEGER NOT NULL DEFAULT 1,
-      expires_at INTEGER NOT NULL,
-      created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
-    );
-
-    -- 索引优化
-    CREATE INDEX IF NOT EXISTS idx_session_userId ON session(userId);
-    CREATE INDEX IF NOT EXISTS idx_account_userId ON account(userId);
-    CREATE INDEX IF NOT EXISTS idx_messages_status ON messages(status, created_at DESC);
-    CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id);
-    CREATE INDEX IF NOT EXISTS idx_rate_limits_key ON rate_limits(key, expires_at);
-    CREATE INDEX IF NOT EXISTS idx_rate_limits_expires ON rate_limits(expires_at);
-  `);
-
-  console.log("[Database] Tables initialized successfully");
-}
-
-// 清理过期的限流记录（定期清理，减少数据库大小）
-export function cleanupExpiredRateLimits() {
-  const now = Math.floor(Date.now() / 1000);
-  const stmt = db.prepare("DELETE FROM rate_limits WHERE expires_at < ?");
-  const result = stmt.run(now);
-
-  if (result.changes > 0) {
-    console.log(`[Database] Cleaned up ${result.changes} expired rate limit records`);
+    return {
+      changes: Number(meta.changes ?? 0),
+      lastInsertRowid: Number(meta.last_row_id ?? 0),
+    };
   }
 }
 
-// 每小时清理一次过期记录
-if (typeof setInterval !== "undefined") {
-  setInterval(cleanupExpiredRateLimits, 60 * 60 * 1000);
+type AuthDatabase = {
+  user: {
+    id: string;
+    email: string;
+    emailVerified: number;
+    name: string | null;
+    image: string | null;
+    createdAt: number;
+    updatedAt: number;
+  };
+  session: {
+    id: string;
+    expiresAt: number;
+    token: string;
+    ipAddress: string | null;
+    userAgent: string | null;
+    userId: string;
+    createdAt: number;
+    updatedAt: number;
+  };
+  account: {
+    id: string;
+    accountId: string;
+    providerId: string;
+    userId: string;
+    accessToken: string | null;
+    refreshToken: string | null;
+    idToken: string | null;
+    expiresAt: number | null;
+    accessTokenExpiresAt: number | null;
+    refreshTokenExpiresAt: number | null;
+    scope: string | null;
+    password: string | null;
+    createdAt: number;
+    updatedAt: number;
+  };
+  verification: {
+    id: string;
+    identifier: string;
+    value: string;
+    expiresAt: number;
+    createdAt: number;
+    updatedAt: number;
+  };
+  messages: {
+    id: number;
+    user_id: string;
+    username: string;
+    content: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  };
+  rate_limits: {
+    id: number;
+    key: string;
+    count: number;
+    expires_at: number;
+    created_at: number;
+  };
+};
+
+let authDbCache: Kysely<AuthDatabase> | null = null;
+let authDbBinding: D1Database | null = null;
+
+export function getAuthDb(): Kysely<AuthDatabase> {
+  const binding = getDatabaseBinding();
+
+  if (!authDbCache || authDbBinding !== binding) {
+    authDbBinding = binding;
+    authDbCache = new Kysely<AuthDatabase>({
+      dialect: new D1Dialect({ database: binding }),
+    });
+  }
+
+  return authDbCache;
 }
 
-// 应用启动时初始化数据库
-initializeDatabase();
+export const db = {
+  prepare<T = Record<string, unknown>>(query: string) {
+    return new D1PreparedStatementWrapper<T>(query);
+  },
+  async exec(sql: string) {
+    return getDatabaseBinding().exec(sql);
+  },
+};
 
-// 优雅关闭
-if (typeof process !== "undefined") {
-  const shutdown = () => {
-    void authDb.destroy().catch((error) => {
-      console.error("[Database] Failed to destroy Kysely instance:", error);
-    });
-    sqliteDb.close();
-  };
+// Database schema is managed via Wrangler D1 migrations.
+export async function initializeDatabase() {
+  return;
+}
 
-  process.on("exit", shutdown);
-  process.on("SIGINT", () => {
-    shutdown();
-    process.exit(0);
-  });
+export async function cleanupExpiredRateLimits() {
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare("DELETE FROM rate_limits WHERE expires_at < ?").run(now);
 }

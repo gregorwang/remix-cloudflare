@@ -1,21 +1,22 @@
 import { Resend } from "resend";
+import { getEnvVar } from "~/utils/cloudflare-env.server";
 
-// 创建 Resend 客户端
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// 验证邮件配置
-if (process.env.RESEND_API_KEY) {
-  console.log("[Email] Resend API configured successfully");
-} else {
-  console.warn("[Email] RESEND_API_KEY not configured");
+function getEmailRuntimeConfig() {
+  const resendApiKey = getEnvVar("RESEND_API_KEY");
+  const appName = getEnvVar("APP_NAME") || "汪家俊的网站";
+  const resendFromEmail = getEnvVar("RESEND_FROM_EMAIL");
+  const nodeEnv = getEnvVar("NODE_ENV") || "development";
+  return { resendApiKey, appName, resendFromEmail, nodeEnv };
 }
 
 /**
  * 发送Magic Link登录邮件
  */
 export async function sendMagicLinkEmail(email: string, magicLinkUrl: string) {
+  const { resendApiKey, appName, resendFromEmail, nodeEnv } = getEmailRuntimeConfig();
+
   // 如果在开发环境且未配置邮件，只打印到控制台
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (nodeEnv === "development" && !resendApiKey) {
     console.log(`
 ╔═══════════════════════════════════════════════════════════════════╗
 ║                     🔐 MAGIC LINK (开发模式)                      ║
@@ -32,9 +33,11 @@ export async function sendMagicLinkEmail(email: string, magicLinkUrl: string) {
   }
 
   try {
+    const resend = new Resend(resendApiKey);
+
     // 使用 Promise.race 实现额外的超时保护
     const sendPromise = resend.emails.send({
-      from: `${process.env.APP_NAME || "汪家俊的网站"} <${process.env.RESEND_FROM_EMAIL}>`,
+      from: `${appName} <${resendFromEmail}>`,
       to: [email],
       subject: "登录验证 - 汪家俊的网站",
       html: getEmailTemplate(magicLinkUrl),
@@ -60,11 +63,12 @@ export async function sendMagicLinkEmail(email: string, magicLinkUrl: string) {
 
     console.log(`[Email] Magic link sent to ${email}, messageId: ${data?.id}`);
     return { success: true, messageId: data?.id };
-  } catch (error: any) {
-    console.error("[Email] Failed to send magic link:", error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("[Email] Failed to send magic link:", errorMessage);
 
     // 保留原始错误信息以便调试
-    if (error.message?.includes("超时") || error.message?.includes("网络")) {
+    if (errorMessage.includes("超时") || errorMessage.includes("网络")) {
       throw error;
     }
 
@@ -82,9 +86,10 @@ export async function sendMessageNotificationEmail(params: {
   messageId?: number;
 }) {
   const { username, userEmail, content, messageId } = params;
+  const { resendApiKey, appName, resendFromEmail, nodeEnv } = getEmailRuntimeConfig();
 
   // 从环境变量获取管理员邮箱列表
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(email => email.trim()) || [];
+  const adminEmails = getEnvVar("ADMIN_EMAILS")?.split(",").map((email) => email.trim()) || [];
 
   if (adminEmails.length === 0) {
     console.warn('[Email] No admin emails configured, skipping notification');
@@ -92,7 +97,7 @@ export async function sendMessageNotificationEmail(params: {
   }
 
   // 如果在开发环境且未配置邮件，只打印到控制台
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (nodeEnv === "development" && !resendApiKey) {
     console.log(`
 ╔═══════════════════════════════════════════════════════════════════╗
 ║                  📬 新留言通知 (开发模式)                         ║
@@ -110,10 +115,11 @@ export async function sendMessageNotificationEmail(params: {
   }
 
   try {
-    const adminUrl = `${process.env.APP_URL || 'http://localhost:3000'}/admin/messages`;
+    const resend = new Resend(resendApiKey);
+    const adminUrl = `${getEnvVar("APP_URL") || "http://localhost:3000"}/admin/messages`;
 
     const { data, error } = await resend.emails.send({
-      from: `${process.env.APP_NAME || "汪家俊的网站"} <${process.env.RESEND_FROM_EMAIL}>`,
+      from: `${appName} <${resendFromEmail}>`,
       to: adminEmails,
       subject: `📬 新留言通知 - ${username}`,
       html: getMessageNotificationTemplate({
@@ -132,10 +138,11 @@ export async function sendMessageNotificationEmail(params: {
 
     console.log(`[Email] Message notification sent to ${adminEmails.join(', ')}, messageId: ${data?.id}`);
     return { success: true, messageId: data?.id };
-  } catch (error: any) {
-    console.error('[Email] Failed to send message notification:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[Email] Failed to send message notification:', errorMessage);
     // 邮件发送失败不应该影响留言提交，所以这里只记录错误
-    return { success: false, error: error.message };
+    return { success: false, error: errorMessage };
   }
 }
 

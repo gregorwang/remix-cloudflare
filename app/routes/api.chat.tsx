@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { ActionFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { generateChatResponse, selectRandomResponse, validateChatMessage } from "~/lib/utils/chatUtils";
 
 // Types

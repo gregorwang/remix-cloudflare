@@ -1,12 +1,22 @@
-import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+﻿import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useFetcher, Link } from "@remix-run/react";
-import { auth } from "~/lib/auth.server";
+import { getSessionCached } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { isAdmin } from "~/lib/constants";
 
+type MessageRow = {
+  id: number;
+  user_id: string;
+  username: string;
+  content: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+  updated_at?: string;
+};
+
 async function requireAdmin(request: Request) {
-  const session = await auth.api.getSession({ headers: request.headers });
+  const session = await getSessionCached(request);
 
   if (!session?.user) {
     throw redirect("/auth");
@@ -30,14 +40,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // 构建查询条件
   let whereClause = '';
-  const params: any[] = [];
+  const params: string[] = [];
   if (status !== 'all') {
     whereClause = 'WHERE status = ?';
     params.push(status);
   }
 
   // 获取消息列表
-  const allMessages = db.prepare(`
+  const allMessages = await db.prepare<MessageRow>(`
     SELECT * FROM messages
     ${whereClause}
     ORDER BY
@@ -51,22 +61,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   `).all(...params, limit, offset);
 
   // 获取总数
-  const totalCount = db.prepare(`
+  const totalCount = await db.prepare<{ count: number }>(`
     SELECT COUNT(*) as count FROM messages ${whereClause}
-  `).get(...params) as { count: number };
+  `).get(...params);
 
-  const pendingCount = db.prepare(`
+  const pendingCount = await db.prepare<{ count: number }>(`
     SELECT COUNT(*) as count FROM messages WHERE status = 'pending'
-  `).get() as { count: number };
+  `).get();
 
-  const totalPages = Math.ceil(totalCount.count / limit);
+  const totalPages = Math.ceil((totalCount?.count || 0) / limit);
 
   return json({
     messages: allMessages,
-    pendingCount: pendingCount.count,
+    pendingCount: pendingCount?.count || 0,
     currentPage: page,
     totalPages,
-    totalCount: totalCount.count,
+    totalCount: totalCount?.count || 0,
     status,
   });
 };
@@ -84,7 +94,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     if (action === "approve") {
-      db.prepare(`
+      await db.prepare(`
         UPDATE messages
         SET status = 'approved', updated_at = datetime('now')
         WHERE id = ?
@@ -92,7 +102,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       return json({ success: "消息已批准" });
     } else if (action === "reject") {
-      db.prepare(`
+      await db.prepare(`
         UPDATE messages
         SET status = 'rejected', updated_at = datetime('now')
         WHERE id = ?
@@ -100,7 +110,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       return json({ success: "消息已拒绝" });
     } else if (action === "delete") {
-      db.prepare(`DELETE FROM messages WHERE id = ?`).run(messageId);
+      await db.prepare(`DELETE FROM messages WHERE id = ?`).run(messageId);
       return json({ success: "消息已删除" });
     } else {
       return json({ error: "无效的操作" }, { status: 400 });
@@ -115,9 +125,9 @@ export default function AdminMessages() {
   const { messages, pendingCount, currentPage, totalPages, totalCount, status } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
-  const handleAction = (messageId: string, action: string) => {
+  const handleAction = (messageId: number | string, action: string) => {
     fetcher.submit(
-      { messageId, action },
+      { messageId: String(messageId), action },
       { method: "post" }
     );
   };
@@ -193,7 +203,7 @@ export default function AdminMessages() {
                   </td>
                 </tr>
               ) : (
-                messages.map((msg: any) => (
+                messages.map((msg) => (
                   <tr key={msg.id} className={msg.status === 'pending' ? 'bg-yellow-50' : ''}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-semibold leading-normal text-gray-900">{msg.username}</div>
@@ -279,3 +289,4 @@ export default function AdminMessages() {
     </div>
   );
 }
+

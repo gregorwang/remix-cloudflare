@@ -8,7 +8,7 @@ import type { loader as messagesLoader } from "~/routes/messages";
 const HomeMessagesClient = lazy(() => import("~/components/messages/HomeMessagesClient.client"));
 
 interface Message {
-    id: string;
+    id: number;
     user_id: string;
     username: string;
     content: string;
@@ -31,7 +31,7 @@ export default function CollapsibleMessages({ userId }: CollapsibleMessagesProps
             // 静默预加载，不阻塞 UI
             fetcher.load("/messages");
         }
-    }, []); // 只在组件挂载时执行一次
+    }, [fetcher]); // 只在组件挂载时执行一次
     
     // 从 fetcher 获取数据
     const messagesData = fetcher.data;

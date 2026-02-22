@@ -192,7 +192,7 @@ export const useMediaToken = (type: MediaType = 'image') => {
   const initializeMediaUrls = useCallback(async (
     items: MediaData[], 
     setItems: (items: MediaData[]) => void,
-    logPrefix = type
+    logPrefix: string = type
   ) => {
     console.log(`🔄 开始初始化${logPrefix}token...`);
     
@@ -230,7 +230,7 @@ export const useMediaToken = (type: MediaType = 'image') => {
    */
   const initializeSingleMediaUrl = useCallback(async (
     src: string, 
-    logName = type
+    logName: string = type
   ): Promise<string> => {
     if (!src || src.includes('token=')) {
       return src;

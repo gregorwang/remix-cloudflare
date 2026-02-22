@@ -1,4 +1,4 @@
-import { type ActionFunctionArgs, redirect } from "@remix-run/node";
+﻿import { type ActionFunctionArgs, redirect } from "@remix-run/cloudflare";
 import { auth } from "~/lib/auth.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -21,3 +21,4 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function SignOutRoute() {
   return null;
 }
+

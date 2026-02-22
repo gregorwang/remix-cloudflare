@@ -1,5 +1,5 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
@@ -206,13 +206,14 @@ export default function AnimePage() {
   useEffect(() => {
     // 添加键盘事件监听
     document.addEventListener('keydown', handleKeydown);
+    const video = videoRef.current;
 
     return () => {
       document.removeEventListener('keydown', handleKeydown);
 
       // 暂停视频
-      if (videoRef.current) {
-        videoRef.current.pause();
+      if (video) {
+        video.pause();
       }
     };
   }, [handleKeydown]);
@@ -331,19 +332,23 @@ export default function AnimePage() {
       <AnimatePresence>
         {showAudioModal && (
           <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
-            onClick={handleModalOverlayClick}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="audio-modal-title"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 relative"
           >
+            <button
+              type="button"
+              className="absolute inset-0 cursor-pointer"
+              onClick={handleModalOverlayClick}
+              aria-label="关闭音频设置"
+            />
             <m.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-gradient-to-br from-white to-gray-50 p-6 md:p-10 rounded-2xl text-center max-w-lg mx-4 shadow-2xl border border-white/20"
-              onClick={(e) => e.stopPropagation()}
+              className="bg-gradient-to-br from-white to-gray-50 p-6 md:p-10 rounded-2xl text-center max-w-lg mx-4 shadow-2xl border border-white/20 relative z-10"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="audio-modal-title"
             >
               <h3 id="audio-modal-title" className="text-xl md:text-2xl font-semibold leading-tight tracking-tight text-gray-800 mb-4">
                 {content.audioModal.title}
@@ -431,3 +436,4 @@ export function ErrorBoundary() {
     </div>
   );
 } 
+

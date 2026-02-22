@@ -53,13 +53,12 @@ const translations = {
 
 export function t(key: string): string {
   const keys = key.split(".");
-  let result: any = translations;
-  try {
-    for (const k of keys) {
-      result = result[k];
+  let result: unknown = translations;
+  for (const k of keys) {
+    if (typeof result !== "object" || result === null || !(k in result)) {
+      return key;
     }
-    return result || key;
-  } catch (error) {
-    return key;
+    result = (result as Record<string, unknown>)[k];
   }
+  return typeof result === "string" ? result : key;
 } 

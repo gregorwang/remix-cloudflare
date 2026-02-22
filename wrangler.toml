@@ -1,0 +1,33 @@
+﻿name = "my-remix-worker"
+main = "worker.ts"
+compatibility_date = "2026-02-21"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./build/client"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "app-db"
+database_id = "f158b23f-0c70-48ae-b346-51f2b59ca44b"
+migrations_dir = "./migrations"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiterDO"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "gregorwang"
+
+[[migrations]]
+tag = "rate_limiter_v2"
+new_sqlite_classes = ["RateLimiterDO"]
+
+[vars]
+NODE_ENV = "production"
+IMAGE_BASE_URL = "https://oss.wangjiajun.asia"
+APP_NAME = "MyRemixApp"
+# APP_URL should match your final domain, e.g. https://example.com
+APP_URL = "https://my-remix-worker.ishallnotwant123.workers.dev"

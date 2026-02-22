@@ -52,7 +52,7 @@ export class PerformanceMonitor {
         console.log(`  TCP连接: ${(navigation.connectEnd - navigation.connectStart).toFixed(2)}ms`);
         console.log(`  请求响应: ${(navigation.responseEnd - navigation.requestStart).toFixed(2)}ms`);
         console.log(`  DOM解析: ${(navigation.domContentLoadedEventEnd - navigation.responseEnd).toFixed(2)}ms`);
-        console.log(`  总加载时间: ${(navigation.loadEventEnd - navigation.navigationStart).toFixed(2)}ms`);
+        console.log(`  总加载时间: ${(navigation.loadEventEnd - navigation.startTime).toFixed(2)}ms`);
       }
     }
   }

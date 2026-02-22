@@ -1,5 +1,5 @@
-import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link, useParams } from "@remix-run/react";
 import { Suspense, lazy } from "react";
 import gameStyles from "~/styles/game.css?url";
@@ -181,4 +181,5 @@ export function ErrorBoundary() {
     </div>
   );
 }
+
 

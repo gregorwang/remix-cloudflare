@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs, LinksFunction, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { LazyMotion, domAnimation, m } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
@@ -37,7 +37,7 @@ export const meta: MetaFunction = () => [
 ];
 
 // Loader function for SSR data - following Remix best practices
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader() {
   // Simulate data fetching (in real app, this might come from CMS/database)
   const data: LoaderData = {
     effectiveDate: "2024年4月1日",
@@ -470,3 +470,4 @@ export function ErrorBoundary() {
     </div>
   );
 }
+

@@ -105,8 +105,8 @@ export const MessageService = {
 
   // 删除留言
   async delete(messageId: string) {
-    const message: any = await redis.hgetall(messageId);
-    if (!message) return;
+    const message = await redis.hgetall(messageId);
+    if (!message || Object.keys(message).length === 0) return;
 
     // 从对应队列中移除
     await redis.lrem("messages:pending", 1, messageId);

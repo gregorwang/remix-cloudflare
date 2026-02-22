@@ -1,5 +1,5 @@
-import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useRouteError, isRouteErrorResponse, Link } from "@remix-run/react";
 import Header from "~/components/ui/Header";
 import Footer from "~/components/ui/foot";
@@ -30,7 +30,7 @@ export const links: LinksFunction = () => [];
 export const meta: MetaFunction = () => pageMeta.updates();
 
 // Loader function - 静态数据
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader() {
   const updates: UpdateLog[] = [
     {
       id: '1',

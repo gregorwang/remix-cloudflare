@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { LinksFunction } from '@remix-run/node';
+import type { LinksFunction } from '@remix-run/cloudflare';
 import stylesheet from '~/styles/music.css?url';
 import { useImageToken, type ImageData } from '~/hooks/useMediaToken.client';
 
@@ -87,6 +87,9 @@ const animateElement = (target: HTMLElement | null, options: {
 // TODO: This should be a proper throttle/debounce function.
 const optimizeScroll = (fn: () => void) => fn;
 
+const needsToken = (items: ImageData[]) => {
+    return items.some(item => item.src && !item.src.includes('token='));
+};
 
 export default function MusicPage() {
     const { initializeImageUrls, handleImageError } = useImageToken();
@@ -118,13 +121,14 @@ export default function MusicPage() {
         const y = Math.random() * 100;
         const animationDelay = Math.random() * 20;
         const animationDuration = Math.random() * 10 + 10;
+        const indexOffset = (index % 10) * 0.2;
 
         return {
             width: `${size}px`,
             height: `${size}px`,
             left: `${x}%`,
             top: `${y}%`,
-            animationDelay: `${animationDelay}s`,
+            animationDelay: `${animationDelay + indexOffset}s`,
             animationDuration: `${animationDuration}s`
         };
     };
@@ -187,14 +191,8 @@ export default function MusicPage() {
                 });
             }
         });
-        
-        // Initialize images
-        initializeImageUrls(dnaImages, setDnaImages, 'DNA');
-        initializeImageUrls(musicImages, setMusicImages, 'Music');
-        initializeImageUrls(albums, setAlbums, 'Album');
 
-        // Initial animations
-        setTimeout(() => {
+        const animationTimer = window.setTimeout(() => {
             animateElement(titleContainer.current, { opacity: [0, 1], translateY: [30, 0], duration: 800, delay: 100, easing: 'easeOutCubic' });
             animateElement(dnaVisual.current, { opacity: [0, 1], scale: [0.9, 1], duration: 800, delay: 300, easing: 'easeOutCubic' });
             animateElement(keyInfo.current, { opacity: [0, 1], translateY: [30, 0], duration: 800, delay: 500, easing: 'easeOutCubic' });
@@ -207,14 +205,27 @@ export default function MusicPage() {
             animateElement(songList.current, { opacity: [0, 1], translateY: [30, 0], duration: 800, delay: 2000, easing: 'easeOutCubic' });
             animateElement(rightTimeline.current, { opacity: [0, 1], translateY: [30, 0], duration: 800, delay: 2400, easing: 'easeOutCubic' });
             animateElement(bottomInfo.current, { opacity: [0, 1], translateY: [30, 0], duration: 800, delay: 2800, easing: 'easeOutCubic' });
-            
+
             window.addEventListener('scroll', handleScroll, { passive: true });
         }, 500);
 
         return () => {
+            window.clearTimeout(animationTimer);
             window.removeEventListener('scroll', handleScroll);
         };
-    }, [initializeImageUrls]); // useCallback ensures this doesn't re-run unnecessarily
+    }, []);
+
+    useEffect(() => {
+        if (needsToken(dnaImages)) {
+            void initializeImageUrls(dnaImages, setDnaImages, 'DNA');
+        }
+        if (needsToken(musicImages)) {
+            void initializeImageUrls(musicImages, setMusicImages, 'Music');
+        }
+        if (needsToken(albums)) {
+            void initializeImageUrls(albums, setAlbums, 'Album');
+        }
+    }, [albums, dnaImages, initializeImageUrls, musicImages]);
 
     return (
         <div className="starfield-bg text-white overflow-x-hidden relative">

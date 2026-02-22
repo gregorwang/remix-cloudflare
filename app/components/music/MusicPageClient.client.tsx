@@ -1,7 +1,7 @@
-import { useRef, useEffect, useState } from 'react';
+﻿import { useRef, useEffect, useState } from 'react';
 import { useMusicAnimations } from '~/hooks/useMusicAnimations.client';
 import type { loader } from '~/routes/music';
-import type { SerializeFrom } from '@remix-run/node';
+import type { SerializeFrom } from '@remix-run/cloudflare';
 
 // ImageData type
 interface ImageData {
@@ -67,13 +67,14 @@ export default function MusicPageClient(loaderData: LoaderData) {
         const y = Math.random() * 100;
         const animationDelay = Math.random() * 20;
         const animationDuration = Math.random() * 10 + 10;
+        const indexOffset = (index % 10) * 0.2;
 
         return {
             width: `${size}px`,
             height: `${size}px`,
             left: `${x}%`,
             top: `${y}%`,
-            animationDelay: `${animationDelay}s`,
+            animationDelay: `${animationDelay + indexOffset}s`,
             animationDuration: `${animationDuration}s`
         };
     };
@@ -663,3 +664,4 @@ export default function MusicPageClient(loaderData: LoaderData) {
         </div>
     );
 } 
+

@@ -1,123 +1,146 @@
-import { betterAuth } from "better-auth";
+﻿import { betterAuth } from "better-auth";
 import { magicLink } from "better-auth/plugins";
 import { APIError } from "better-auth/api";
-import { db } from "./db.server";
+import { getAuthDb } from "./db.server";
 import { sendMagicLinkEmail } from "./email.server";
 import { MagicLinkRateLimitService } from "./rate-limit.server";
+import { getEnvVar } from "~/utils/cloudflare-env.server";
 
-// 获取应用URL
-const APP_URL = process.env.APP_URL || "http://localhost:3000";
+function createAuth() {
+  const appUrl = getEnvVar("APP_URL") || "http://localhost:3000";
 
-// 配置Better Auth
-export const auth = betterAuth({
-  database: db,
-  // 基础URL
-  baseURL: APP_URL,
-  // 应用名称
-  appName: "MyRemixApp",
-  // 会话配置
-  session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7天
-    updateAge: 60 * 60 * 24, // 1天后更新
-  },
-  // 社交登录
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+  return betterAuth({
+    database: {
+      db: getAuthDb(),
+      type: "sqlite",
     },
-  },
-  // 插件
-  plugins: [
-    magicLink({
-      disableSignUp: false, // 允许通过 magic link 注册
-      expiresIn: 300, // 5分钟
-      async sendMagicLink({ email, url, token }) {
-        console.log(`[MagicLink] Attempting to send to ${email}`);
-
-        try {
-          // 1. 检查全局限流（100次/小时）
-          const globalCheck = await MagicLinkRateLimitService.checkGlobalRateLimit();
-          if (!globalCheck.allowed) {
-            console.warn("[MagicLink] Global rate limit exceeded", {
-              remaining: globalCheck.remaining
-            });
-            throw new APIError("TOO_MANY_REQUESTS", {
-              message: "请求过于频繁，请稍后再试"
-            });
-          }
-
-          // 2. 检查邮箱限流（3次/小时）
-          const emailCheck = await MagicLinkRateLimitService.checkEmailRateLimit(email);
-          if (!emailCheck.allowed) {
-            console.warn("[MagicLink] Email rate limit exceeded:", {
-              email,
-              resetAt: emailCheck.resetAt
-            });
-            throw new APIError("TOO_MANY_REQUESTS", {
-              message: "请求过于频繁，请稍后再试"
-            });
-          }
-
-          // 3. 检查冷却时间（60秒）
-          const cooldownCheck = await MagicLinkRateLimitService.checkEmailCooldown(email);
-          if (!cooldownCheck.allowed) {
-            console.warn("[MagicLink] Email cooldown active:", {
-              email,
-              remainingSeconds: cooldownCheck.remainingSeconds,
-              emailRemaining: emailCheck.remaining
-            });
-            throw new APIError("TOO_MANY_REQUESTS", {
-              message: "请求过于频繁，请稍后再试"
-            });
-          }
-
-          console.log("[MagicLink] Rate limit checks passed:", {
-            email,
-            emailRemaining: emailCheck.remaining,
-            globalRemaining: globalCheck.remaining,
-          });
-
-        } catch (error: any) {
-          // 如果是 APIError（限流错误），直接抛出
-          if (error instanceof APIError) {
-            console.warn("[MagicLink] Rate limit triggered, blocking request:", error.message);
-            throw error; // 直接抛出，阻止发送邮件
-          }
-
-          // 如果是普通错误但包含限流关键词，也要阻止
-          // 统一使用通用错误信息，不泄露具体策略
-          if (error.message?.includes("请求过于频繁") ||
-              error.message?.includes("后再试")) {
-            console.warn("[MagicLink] Rate limit triggered (Error type), blocking request");
-            throw new APIError("TOO_MANY_REQUESTS", { message: "请求过于频繁，请稍后再试" });
-          }
-
-          // 数据库错误时降级：允许发送，但记录日志
-          console.error("[MagicLink] Database error during rate limit check, allowing request:", error);
-        }
-
-        // 通过所有检查，发送邮件
-        try {
-          await sendMagicLinkEmail(email, url);
-          console.log(`[MagicLink] Email sent successfully to ${email}`);
-        } catch (emailError: any) {
-          console.error("[MagicLink] Email sending failed:", emailError.message);
-          // 使用 APIError 包装错误，确保前端能正确接收
-          throw new APIError("INTERNAL_SERVER_ERROR", {
-            message: emailError.message || "邮件发送失败，请稍后重试"
-          });
-        }
+    baseURL: appUrl,
+    appName: getEnvVar("APP_NAME") || "MyRemixApp",
+    session: {
+      expiresIn: 60 * 60 * 24 * 7,
+      updateAge: 60 * 60 * 24,
+    },
+    socialProviders: {
+      google: {
+        clientId: getEnvVar("GOOGLE_CLIENT_ID") || "",
+        clientSecret: getEnvVar("GOOGLE_CLIENT_SECRET") || "",
       },
-    }),
-  ],
+    },
+    plugins: [
+      magicLink({
+        disableSignUp: false,
+        expiresIn: 300,
+        async sendMagicLink({ email, url }) {
+          console.log(`[MagicLink] Attempting to send to ${email}`);
+
+          try {
+            const globalCheck = await MagicLinkRateLimitService.checkGlobalRateLimit();
+            if (!globalCheck.allowed) {
+              console.warn("[MagicLink] Global rate limit exceeded", {
+                remaining: globalCheck.remaining,
+              });
+              throw new APIError("TOO_MANY_REQUESTS", {
+                message: "请求过于频繁，请稍后再试",
+              });
+            }
+
+            const emailCheck = await MagicLinkRateLimitService.checkEmailRateLimit(email);
+            if (!emailCheck.allowed) {
+              console.warn("[MagicLink] Email rate limit exceeded:", {
+                email,
+                resetAt: emailCheck.resetAt,
+              });
+              throw new APIError("TOO_MANY_REQUESTS", {
+                message: "请求过于频繁，请稍后再试",
+              });
+            }
+
+            const cooldownCheck = await MagicLinkRateLimitService.checkEmailCooldown(email);
+            if (!cooldownCheck.allowed) {
+              console.warn("[MagicLink] Email cooldown active:", {
+                email,
+                remainingSeconds: cooldownCheck.remainingSeconds,
+                emailRemaining: emailCheck.remaining,
+              });
+              throw new APIError("TOO_MANY_REQUESTS", {
+                message: "请求过于频繁，请稍后再试",
+              });
+            }
+
+            console.log("[MagicLink] Rate limit checks passed:", {
+              email,
+              emailRemaining: emailCheck.remaining,
+              globalRemaining: globalCheck.remaining,
+            });
+          } catch (error: unknown) {
+            if (error instanceof APIError) {
+              console.warn("[MagicLink] Rate limit triggered, blocking request:", error.message);
+              throw error;
+            }
+
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (errorMessage.includes("请求过于频繁") || errorMessage.includes("后再试")) {
+              console.warn("[MagicLink] Rate limit triggered (Error type), blocking request");
+              throw new APIError("TOO_MANY_REQUESTS", { message: "请求过于频繁，请稍后再试" });
+            }
+
+            console.error("[MagicLink] Database error during rate limit check, allowing request:", error);
+          }
+
+          try {
+            await sendMagicLinkEmail(email, url);
+            console.log(`[MagicLink] Email sent successfully to ${email}`);
+          } catch (emailError: unknown) {
+            const emailErrorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+            console.error("[MagicLink] Email sending failed:", emailErrorMessage);
+            throw new APIError("INTERNAL_SERVER_ERROR", {
+              message: emailErrorMessage || "邮件发送失败，请稍后重试",
+            });
+          }
+        },
+      }),
+    ],
+  });
+}
+
+let authInstance: ReturnType<typeof betterAuth> | null = null;
+
+export function getAuth() {
+  if (!authInstance) {
+    authInstance = createAuth();
+  }
+  return authInstance;
+}
+
+export const auth = new Proxy({} as ReturnType<typeof betterAuth>, {
+  get(_target, prop) {
+    return (getAuth() as Record<string, unknown>)[prop as string];
+  },
 });
 
-// 辅助函数：要求用户登录
+type AuthSession = Awaited<ReturnType<ReturnType<typeof getAuth>["api"]["getSession"]>>;
+const sessionCache = new WeakMap<Request, Promise<AuthSession>>();
+
+export function getSessionCached(request: Request) {
+  const cached = sessionCache.get(request);
+  if (cached) {
+    return cached;
+  }
+
+  const sessionPromise = getAuth()
+    .api
+    .getSession({ headers: request.headers })
+    .catch((error) => {
+      sessionCache.delete(request);
+      throw error;
+    });
+
+  sessionCache.set(request, sessionPromise);
+  return sessionPromise;
+}
+
 export async function requireAuth(request: Request) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+  const session = await getSessionCached(request);
 
   if (!session?.user) {
     throw new Response("Unauthorized", { status: 401 });
@@ -126,13 +149,11 @@ export async function requireAuth(request: Request) {
   return session.user;
 }
 
-// 辅助函数：检查是否为管理员
 export function isAdmin(email: string): boolean {
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-  return adminEmails.includes(email);
+  const adminEmails = getEnvVar("ADMIN_EMAILS")?.split(",") || [];
+  return adminEmails.map((item) => item.trim()).includes(email);
 }
 
-// 辅助函数：要求管理员权限
 export async function requireAdmin(request: Request) {
   const user = await requireAuth(request);
 

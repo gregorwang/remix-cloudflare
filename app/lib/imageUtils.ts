@@ -30,8 +30,8 @@ export const getMusicImageSrc = (id: string, musicImages: ImageData[]): string =
 
 // 获取专辑封面URL
 export const getAlbumCoverSrc = (cover: string): string => {
-  // 直接返回占位符，因为实际图片文件不存在
-  return DEFAULT_PLACEHOLDER;
+  // 优先使用传入封面，缺失时使用占位符
+  return cover || DEFAULT_PLACEHOLDER;
 };
 
 // 图片错误处理函数
@@ -84,7 +84,7 @@ export function createImageObserver(callback?: (entries: IntersectionObserverEnt
 // 预加载关键图片
 export function preloadImages(imageSrcs: string[]): Promise<void[]> {
   const promises = imageSrcs.map((src) => {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       const img = new Image();
       img.onload = () => resolve();
       img.onerror = () => {
@@ -105,13 +105,14 @@ export function getParticleStyle(index: number): React.CSSProperties {
   const y = Math.random() * 100;
   const animationDelay = Math.random() * 20;
   const animationDuration = Math.random() * 10 + 10;
+  const indexOffset = (index % 10) * 0.2;
   
   return {
     width: `${size}px`,
     height: `${size}px`,
     left: `${x}%`,
     top: `${y}%`,
-    animationDelay: `${animationDelay}s`,
+    animationDelay: `${animationDelay + indexOffset}s`,
     animationDuration: `${animationDuration}s`,
   };
 }

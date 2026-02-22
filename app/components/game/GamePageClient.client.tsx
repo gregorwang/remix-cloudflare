@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from 'react';
 import type { loader } from '~/routes/game';
 import { Link } from '@remix-run/react';
-import type { SerializeFrom } from '@remix-run/node';
+import type { SerializeFrom } from '@remix-run/cloudflare';
 import { PlayStationIcon, SwitchIcon, PCIcon } from '~/components/GamePlatformIcons';
 
 type LoaderData = SerializeFrom<typeof loader>;
@@ -38,7 +38,7 @@ const GameImage = ({
             src={src}
             alt={alt}
             className={className}
-            onError={(e) => console.error('Image failed to load:', src)}
+            onError={() => console.error('Image failed to load:', src)}
             loading={isLazy ? "lazy" : "eager"}
         />
     );
@@ -77,7 +77,7 @@ export default function GamePageClient(data: LoaderData) {
         const pages = [];
         const maxVisible = 5;
         let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-        let end = Math.min(totalPages, start + maxVisible - 1);
+        const end = Math.min(totalPages, start + maxVisible - 1);
 
         if (end - start + 1 < maxVisible) {
             start = Math.max(1, end - maxVisible + 1);
@@ -379,3 +379,4 @@ export default function GamePageClient(data: LoaderData) {
         </>
     );
 } 
+

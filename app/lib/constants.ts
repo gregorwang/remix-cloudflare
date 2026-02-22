@@ -2,7 +2,7 @@
 
 // API 相关常量
 export const API_ENDPOINTS = {
-  BASE_URL: process.env.NODE_ENV === 'production' 
+  BASE_URL: import.meta.env.PROD
     ? 'https://api.example.com' 
     : 'http://localhost:3000',
   AUTH: '/auth',

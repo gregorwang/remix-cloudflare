@@ -1,7 +1,7 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
-import { LazyMotion, domAnimation, m } from "framer-motion";
+import { LazyMotion, domAnimation } from "framer-motion";
 import galleryStyles from "~/styles/gallery.css?url";
 import { getCachedTokens } from "~/lib/token-cache.server";
 import { pageMeta } from "~/utils/seo";
@@ -178,7 +178,7 @@ export default function Gallery() {
                       alt={photo.alt}
                       loading="lazy"
                       className="transition-transform duration-600 ease-expo-out group-hover:scale-105"
-                      onError={(e) => console.error('Image failed to load:', photo.src)}
+                      onError={() => console.error('Image failed to load:', photo.src)}
                     />
                   </div>
                 ))}
@@ -226,3 +226,4 @@ export default function Gallery() {
     </LazyMotion>
   );
 }
+

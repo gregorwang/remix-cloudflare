@@ -4,7 +4,7 @@ import CommentsBoard from "./comments-board"
 import type { loader as messagesLoader } from "~/routes/messages"
 
 interface Message {
-  id: string
+  id: number
   user_id: string
   username: string
   content: string

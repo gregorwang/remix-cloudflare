@@ -1,6 +1,6 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import crypto from 'crypto';
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
+import { verifyImageToken } from "~/utils/imageToken.server";
 
 // 验证token的响应类型
 interface VerifyTokenResponse {
@@ -36,65 +36,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   try {
-    // 配置 - 保持和生成端一致
-    const secret = process.env.AUTH_KEY_SECRET || '0627';
-    
-    // 解码Token：base64url(expires:signature)
-    const tokenData = Buffer.from(token, 'base64url').toString('utf-8');
-    const [expires, receivedSignature] = tokenData.split(':');
-    
-    if (!expires || !receivedSignature) {
-      return json<VerifyTokenResponse>(
-        { 
-          valid: false, 
-          error: 'Invalid token format' 
-        },
-        {
-          status: 400,
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-          }
-        }
-      );
-    }
-    
-    // 检查是否过期
-    const currentTime = Math.floor(Date.now() / 1000);
-    const expiresTimestamp = parseInt(expires);
-    
-    if (expiresTimestamp < currentTime) {
+    const verification = verifyImageToken(token, imageName);
+    if (!verification.valid) {
+      const status = verification.error === 'Invalid token format' ? 400 : 401;
       return json<VerifyTokenResponse>(
         {
           valid: false,
-          error: 'Token expired',
-          expires: expiresTimestamp,
-          currentTime
+          error: verification.error || 'Invalid token'
         },
         {
-          status: 401,
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-          }
-        }
-      );
-    }
-    
-    // 重新计算签名进行验证
-    const key = imageName; // 图片名作为key
-    const message = `${key}:${expires}`;
-    const expectedSignature = crypto.createHmac('sha256', secret)
-      .update(message)
-      .digest('hex'); // 校验也用 hex
-    
-    // 验证签名
-    if (receivedSignature !== expectedSignature) {
-      return json<VerifyTokenResponse>(
-        {
-          valid: false,
-          error: 'Invalid signature'
-        },
-        {
-          status: 401,
+          status,
           headers: {
             "Cache-Control": "no-cache, no-store, must-revalidate",
           }
@@ -103,7 +54,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     // 成功验证 - 可以短时间缓存验证结果
-    const remainingTime = expiresTimestamp - currentTime;
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiresTimestamp = verification.expires!;
+    const remainingTime = verification.remainingTime ?? Math.max(0, expiresTimestamp - currentTime);
     const cacheTime = Math.min(60, remainingTime); // 缓存时间不超过1分钟且不超过token剩余时间
     
     return json<VerifyTokenResponse>(
@@ -155,7 +108,7 @@ export function ErrorBoundary() {
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Token验证服务错误</h1>
           <p className="text-gray-600 mb-4">抱歉，token验证服务暂时不可用。</p>
           <button 
-            onClick={() => window.location.href = window.location.href} 
+            onClick={() => window.location.reload()} 
             className="bg-accent text-white px-4 py-2 rounded hover:bg-accent-hover transition-colors"
           >
             重试
@@ -165,3 +118,4 @@ export function ErrorBoundary() {
     </div>
   );
 } 
+

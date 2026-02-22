@@ -1,5 +1,5 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { LazyMotion, domAnimation, m } from "framer-motion";
 import { generateImageTokens } from "~/utils/imageToken.server";
@@ -123,6 +123,10 @@ interface CVPageData {
       title: string;
       gaming: string;
       cycling: string;
+      photography: string;
+      music: string;
+      anime: string;
+      website: string;
     };
     self_evaluation: {
       title: string;
@@ -626,3 +630,4 @@ export function ErrorBoundary() {
     </div>
   );
 }
+

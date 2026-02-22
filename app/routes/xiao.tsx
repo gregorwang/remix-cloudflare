@@ -1,5 +1,5 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { LazyMotion, domAnimation, m } from "framer-motion";
 import { generateImageTokens } from "~/utils/imageToken.server";
@@ -160,7 +160,7 @@ export default function XiaoPage() {
                   alt={xiaoimages[0]?.alt}
                   className="w-full h-80 object-cover"
                   loading="eager"
-                  onError={(e) => console.error('Image failed to load:', xiaoimages[0]?.src)}
+                  onError={() => console.error('Image failed to load:', xiaoimages[0]?.src)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </div>
@@ -190,7 +190,7 @@ export default function XiaoPage() {
                   alt={xiaoimages[1]?.alt}
                   className="w-full h-80 object-cover"
                   loading="lazy"
-                  onError={(e) => console.error('Image failed to load:', xiaoimages[1]?.src)}
+                  onError={() => console.error('Image failed to load:', xiaoimages[1]?.src)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
@@ -209,7 +209,7 @@ export default function XiaoPage() {
                   alt={xiaoimages[2]?.alt}
                   className="w-full h-80 object-cover"
                   loading="lazy"
-                  onError={(e) => console.error('Image failed to load:', xiaoimages[2]?.src)}
+                  onError={() => console.error('Image failed to load:', xiaoimages[2]?.src)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
@@ -268,7 +268,7 @@ export default function XiaoPage() {
                   alt={xiaoimages[3]?.alt}
                   className="w-full h-96 object-cover"
                   loading="lazy"
-                  onError={(e) => console.error('Image failed to load:', xiaoimages[3]?.src)}
+                  onError={() => console.error('Image failed to load:', xiaoimages[3]?.src)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
@@ -281,7 +281,7 @@ export default function XiaoPage() {
                   alt={xiaoimages[4]?.alt}
                   className="w-full h-96 object-cover"
                   loading="lazy"
-                  onError={(e) => console.error('Image failed to load:', xiaoimages[4]?.src)}
+                  onError={() => console.error('Image failed to load:', xiaoimages[4]?.src)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
@@ -294,7 +294,7 @@ export default function XiaoPage() {
                   alt={xiaoimages[5]?.alt}
                   className="w-full h-96 object-cover"
                   loading="lazy"
-                  onError={(e) => console.error('Image failed to load:', xiaoimages[5]?.src)}
+                  onError={() => console.error('Image failed to load:', xiaoimages[5]?.src)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
@@ -390,3 +390,4 @@ export function ErrorBoundary() {
     </div>
   );
 } 
+

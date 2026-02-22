@@ -1,17 +1,15 @@
-import { vitePlugin as remix } from "@remix-run/dev";
-import { installGlobals } from "@remix-run/node";
-import { defineConfig, loadEnv } from "vite";
+﻿import { vitePlugin as remix } from "@remix-run/dev";
+import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { visualizer } from "rollup-plugin-visualizer";
 
-declare module "@remix-run/node" {
+declare module "@remix-run/cloudflare" {
   interface Future {
     v3_singleFetch: true;
   }
 }
 
-installGlobals();
-
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   return {
     server: {
       port: 3000,
@@ -60,6 +58,14 @@ export default defineConfig(({ mode }) => {
         },
       }),
       tsconfigPaths(),
+      visualizer({
+        open: false,
+        filename: "./bundle-stats.html",
+        gzipSize: true,
+        brotliSize: true,
+      }),
     ],
   };
 });
+
+

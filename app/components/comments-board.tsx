@@ -7,7 +7,7 @@ const EMOJIS_PER_PAGE = 32
 const MESSAGES_PER_PAGE = 10
 
 interface Message {
-  id: string
+  id: number
   user_id: string
   username: string
   content: string
@@ -60,7 +60,7 @@ export default function CommentsBoard({ messages, userPendingMessages = [], user
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [displayedMessagesCount, setDisplayedMessagesCount] = useState(MESSAGES_PER_PAGE)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set())
+  const [expandedMessages, setExpandedMessages] = useState<Set<number>>(new Set())
 
   const isSubmitting = fetcher.state === "submitting"
 
@@ -194,7 +194,7 @@ export default function CommentsBoard({ messages, userPendingMessages = [], user
   const hasMoreMessages = displayedMessagesCount < messagesArray.length
 
   // 切换展开/收起
-  const toggleExpand = (id: string) => {
+  const toggleExpand = (id: number) => {
     setExpandedMessages(prev => {
       const newSet = new Set(prev)
       if (newSet.has(id)) {

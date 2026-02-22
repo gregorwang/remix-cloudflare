@@ -1,9 +1,7 @@
-import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+﻿import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useRouteError, isRouteErrorResponse } from "@remix-run/react";
 import { lazy, Suspense } from "react";
-import { readFileSync } from "fs";
-import { join } from "path";
 import styles from "~/styles/index-route.css?url";
 import Header from "~/components/ui/Header";
 import Faq from "~/components/ui/question";
@@ -11,7 +9,8 @@ import Footer from "~/components/ui/foot";
 import ChangelogSection from "~/components/changelog-section";
 import CursorTeamSection from "~/components/photo-section";
 import CtaSection from "~/components/cta-section";
-import { auth } from "~/lib/auth.server";
+import { getSessionCached } from "~/lib/auth.server";
+import { HOME_SONGS } from "~/lib/data/home-songs.server";
 import { pageMeta } from "~/utils/seo";
 
 // Lazy load heavy components for better initial load performance
@@ -25,68 +24,12 @@ export const links: LinksFunction = () => [
 ];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-    const session = await auth.api.getSession({ headers: request.headers });
-
-    // 定义歌曲列表
-    const songs = [
-        {
-            id: "28921695",
-            title: "Nine Point Eight",
-            artist: "Mili",
-            url: "https://music.163.com/song/media/outer/url?id=28921695.mp3",
-            lrcFile: "Nine Point Eight.lrc"
-        },
-        {
-            id: "30841657",
-            title: "まっしろな雪",
-            artist: "水瀬ましろ",
-            url: "https://music.163.com/song/media/outer/url?id=30841657.mp3",
-            lrcFile: "まっしろな雪.lrc"
-        },
-        {
-            id: "705331",
-            title: "コネクト",
-            artist: "ClariS",
-            url: "https://whylookthis.wangjiajun.asia/4244581413.mp3",
-            lrcFile: "コネクト.lrc"
-        },
-        {
-            id: "729877",
-            title: "You're the Shine(Night Butterflies)",
-            artist: "FELT",
-            url: "https://music.163.com/song/media/outer/url?id=729877.mp3",
-            lrcFile: "You're the Shine(Night Butterflies).lrc"
-        },
-        {
-            id: "29848676",
-            title: "Moments",
-            artist: "FELT",
-            url: "https://music.163.com/song/media/outer/url?id=29848676.mp3",
-            lrcFile: "Moments.lrc"
-        },
-        {
-            id: "425280603",
-            title: "Goodbye",
-            artist: "Vivienne",
-            url: "https://music.163.com/song/media/outer/url?id=425280603.mp3",
-            lrcFile: "Goodbye.lrc"
-        }
-    ];
-
-    // 读取所有歌词文件
-    const songsWithLyrics = songs.map(song => {
-        const lyricsPath = join(process.cwd(), "public", song.lrcFile);
-        const lyricsText = readFileSync(lyricsPath, "utf-8");
-        return {
-            ...song,
-            lyrics: lyricsText
-        };
-    });
+    const session = await getSessionCached(request);
 
     return json({
         userId: session?.user?.id || null,
         currentUser: session?.user || null,
-        songs: songsWithLyrics,
+        songs: HOME_SONGS,
     }, {
         headers: {
             "Cache-Control": "public, max-age=300, s-maxage=900, stale-while-revalidate=3600",
@@ -316,3 +259,5 @@ export default function Index() {
     </div>
   );
 }
+
+

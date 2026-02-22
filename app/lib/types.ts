@@ -71,7 +71,7 @@ export interface RegisterData {
 }
 
 // API 相关类型
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   message: string;
   success: boolean;
@@ -81,7 +81,7 @@ export interface ApiResponse<T = any> {
 export interface ApiError {
   code: string;
   message: string;
-  details?: any;
+  details?: unknown;
   timestamp: string;
 }
 
@@ -118,7 +118,7 @@ export interface FormField {
 
 export interface ValidationRule {
   type: 'required' | 'email' | 'minLength' | 'maxLength' | 'pattern' | 'custom';
-  value?: any;
+  value?: unknown;
   message: string;
 }
 
@@ -129,7 +129,7 @@ export interface SelectOption {
 }
 
 export interface FormState {
-  values: Record<string, any>;
+  values: Record<string, unknown>;
   errors: Record<string, string>;
   touched: Record<string, boolean>;
   isSubmitting: boolean;
