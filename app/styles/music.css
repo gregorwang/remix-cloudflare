@@ -3,8 +3,6 @@
  * 导入所有模块化CSS文件
  */
 
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
-
 /* 基础配置 */
 @import "./music/_base.css";
 
